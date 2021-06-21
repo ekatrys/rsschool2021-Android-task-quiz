@@ -69,7 +69,7 @@ class ResultFragment : Fragment() {
             for (question in questions) {
                 append(
                     "${count++}) ${questions[starter].text}\n" +
-                        "Your answer: ${question.answers[mAnswersList[starter]]} \n\n"
+                        "Your answer: ${question.answers[mAnswersList[starter++]]} \n\n"
                 )
             }
         }.toString()
