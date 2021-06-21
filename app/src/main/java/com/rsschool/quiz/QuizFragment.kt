@@ -47,9 +47,15 @@ class QuizFragment : Fragment() {
 
         if(existPreviousAnswer){
             val buttonIndex = application.pickAnswer[questionIndex]
+            savedInstanceState?.putInt("buttonIndex", buttonIndex)
             getRadioButtonId(buttonIndex).isChecked = true
             binding.nextButton.isEnabled = true
+        }
 
+        if (savedInstanceState != null){
+            val buttonIndex = savedInstanceState.getInt("buttonIndex")
+            getRadioButtonId(buttonIndex).isChecked = true
+            binding.nextButton.isEnabled = true
         }
 
         if (questionIndex == 0) {
@@ -59,6 +65,8 @@ class QuizFragment : Fragment() {
         }
 
         binding.questionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            val buttonIndex = getAnswerIndex(checkedId)
+            savedInstanceState?.putInt("buttonIndex", buttonIndex)
             if (-1 != checkedId) binding.nextButton.isEnabled = true
         }
 
@@ -67,7 +75,11 @@ class QuizFragment : Fragment() {
             val pickAnswer = getAnswerIndex(checkedId)
             existPreviousAnswer = application.pickAnswer.size > questionIndex + 1
 
-            application.pickAnswer.add(questionIndex, pickAnswer)
+            if(application.pickAnswer.elementAtOrNull(questionIndex) == null) {
+                application.pickAnswer.add(questionIndex, pickAnswer)
+            } else {
+                application.pickAnswer[questionIndex] = pickAnswer
+            }
             if (checkCorrectAnswer(pickAnswer)) rightAnswer++
 
             navigation(questionIndex, rightAnswer, existPreviousAnswer)

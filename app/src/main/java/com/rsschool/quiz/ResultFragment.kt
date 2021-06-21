@@ -42,6 +42,7 @@ class ResultFragment : Fragment() {
                 QuizFragmentDirections.actionToQuizFragment(
                 )
             )
+            application.pickAnswer.clear()
         }
         binding.closeButton.setOnClickListener {
             activity?.finish()
