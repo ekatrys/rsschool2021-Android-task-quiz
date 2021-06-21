@@ -1,5 +1,6 @@
 package com.rsschool.quiz
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,14 +22,17 @@ class ResultFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentResultBinding.inflate(inflater)
+        val application = requireNotNull(activity).application as QuizApplication
         val arg = ResultFragmentArgs.fromBundle(requireArguments())
         val numCorrect = arg.numCorrect
         val numQuestions = 5
 
         val shareIntent = ShareCompat.IntentBuilder.from(requireActivity())
-            .setText(getString(R.string.share_success_text, numCorrect, numQuestions))
+            .setText(createMessage(numCorrect, application))
             .setType("text/plain")
-            .intent
+            .intent.apply {
+                putExtra(Intent.EXTRA_SUBJECT, "Quiz result")
+            }
 
         binding.resutText.text =
             getString(R.string.result_text, numCorrect, numQuestions)
@@ -52,5 +56,21 @@ class ResultFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun createMessage(numCorrect: Int, application: QuizApplication): String {
+        var count = 1
+        var starter = 0
+        val mAnswersList = application.pickAnswer
+        val stringBuilder = StringBuilder("")
+        return stringBuilder.apply {
+            append("Your result: $numCorrect из ${questions.size} \n\n")
+            for (question in questions) {
+                append(
+                    "${count++}) ${questions[starter].text}\n" +
+                        "Your answer: ${question.answers[mAnswersList[starter]]} \n\n"
+                )
+            }
+        }.toString()
     }
 }

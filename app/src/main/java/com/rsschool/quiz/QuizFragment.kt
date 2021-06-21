@@ -33,8 +33,11 @@ class QuizFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val args = QuizFragmentArgs.fromBundle(requireArguments())
+        val application = requireNotNull(activity).application as QuizApplication
         var questionIndex = args.questionIndex
         var rightAnswer = args.rightAnswer
+        var existPreviousAnswer = args.existPreviousAnswer
+
 
         requireContext().setTheme(theme)
 
@@ -42,9 +45,17 @@ class QuizFragment : Fragment() {
         setQuestions(questionIndex)
         binding.quiz = this
 
+        if(existPreviousAnswer){
+            val buttonIndex = application.pickAnswer[questionIndex]
+            getRadioButtonId(buttonIndex).isChecked = true
+            binding.nextButton.isEnabled = true
+
+        }
+
         if (questionIndex == 0) {
             binding.toolbar.navigationIcon = null
             binding.previousButton.isEnabled = false
+
         }
 
         binding.questionRadioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -54,8 +65,12 @@ class QuizFragment : Fragment() {
         binding.nextButton.setOnClickListener { view ->
             val checkedId = binding.questionRadioGroup.checkedRadioButtonId
             val pickAnswer = getAnswerIndex(checkedId)
+            existPreviousAnswer = application.pickAnswer.size > questionIndex + 1
+
+            application.pickAnswer.add(questionIndex, pickAnswer)
             if (checkCorrectAnswer(pickAnswer)) rightAnswer++
-            navigation(questionIndex, rightAnswer)
+
+            navigation(questionIndex, rightAnswer, existPreviousAnswer)
         }
 
         return binding.root
@@ -86,14 +101,18 @@ class QuizFragment : Fragment() {
         else -> 4
     }
 
-    private fun navigation(currentQuestionIndex: Int, rightQuestions: Int) {
+    private fun navigation(
+        currentQuestionIndex: Int,
+        rightQuestions: Int,
+        existPreviousAnswer: Boolean
+    ) {
         var questionIndex = currentQuestionIndex
         if (questionIndex < numQuestions) {
             currentQuestion = questions[questionIndex]
             questionIndex++
             view?.findNavController()?.navigate(
                 QuizFragmentDirections.actionToQuizFragment(
-                    questionIndex, rightQuestions
+                    questionIndex, rightQuestions, existPreviousAnswer
                 )
             )
         } else {
@@ -106,5 +125,12 @@ class QuizFragment : Fragment() {
     private fun checkCorrectAnswer(answerIndex: Int) =
         (answers[answerIndex] == currentQuestion.answers[0])
 
+    private fun getRadioButtonId(index: Int) = when (index) {
+        0 -> binding.optionOne
+        1 -> binding.optionTwo
+        2 -> binding.optionThree
+        3 -> binding.optionFour
+        else -> binding.optionFive
+    }
 }
 
